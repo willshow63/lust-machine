@@ -870,6 +870,35 @@
   @keyframes apEq { from { transform: scaleY(0.35); } to { transform: scaleY(1); } }
 
   /* Gallery picker */
+  .lm-gallery .ga-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.9rem;
+  }
+  .lm-gallery .ga-head h2 { margin-bottom: 0.25rem; }
+  .lm-gallery .ga-head .sub { margin-bottom: 0; }
+  .ga-shuffle {
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 0.85rem;
+    background: var(--heat);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    box-shadow: 0 6px 16px var(--heat-glow);
+    transition: transform 0.15s, background 0.15s;
+  }
+  .ga-shuffle:hover { background: var(--heat-2); transform: translateY(-1px); }
+  .ga-shuffle:active { transform: scale(0.96); }
+  .ga-shuffle svg { width: 14px; height: 14px; }
   .lm-gallery .ga-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1856,8 +1885,16 @@
   <!-- Gallery / subject picker -->
   <div class="menu-sheet lm-picker lm-gallery" id="galleryPicker">
     <div class="handle"></div>
-    <h2>Gallery</h2>
-    <div class="sub">Jump to any subject.</div>
+    <div class="ga-head">
+      <div>
+        <h2>Gallery</h2>
+        <div class="sub">Jump to any subject — or let fate pick.</div>
+      </div>
+      <button class="ga-shuffle" id="gaShuffle" aria-label="Shuffle to random subject">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+        <span>Shuffle</span>
+      </button>
+    </div>
     <div class="ga-grid" id="gaGrid"></div>
   </div>
 
@@ -2071,7 +2108,10 @@
     "Counter-pose.",
     "Reference shot.",
     "Hold frame, Jen.",
-    "You called it."
+    "You called it.",
+    "Latest drop. First look.",
+    "Between takes.",
+    "Off-duty. Still yours."
   ];
 
   // ============================================================
@@ -2146,8 +2186,15 @@
   // ============================================================
   // BUILD STAGE (subject imagery)
   // ============================================================
-  // Splice in the Chris Farley gif as the 3rd subject.
-  IMAGES.splice(2, 0, { name: 'chris-farley.gif', src: 'chris-farley.gif' });
+  // Splice in the Chris Farley gif as the 3rd subject (hidden from gallery,
+  // still eligible for shuffle).
+  IMAGES.splice(2, 0, { name: 'chris-farley.gif', src: 'chris-farley.gif', hidden: true });
+  // Additional subjects (referenced by path; not base64).
+  IMAGES.push(
+    { name: 'CSF010.jpg', src: 'CSF010.jpg' },
+    { name: 'CSF012.jpg', src: 'CSF012.jpg' },
+    { name: 'CSF021.jpg', src: 'CSF021.jpg' },
+  );
   function imgSrc(entry) {
     return entry.src ? entry.src : 'data:image/jpeg;base64,' + entry.b64;
   }
@@ -2504,20 +2551,33 @@
     setTimeout(() => openGame(tile.dataset.game), 250);
   });
 
-  // Build gallery thumbs
+  // Build gallery thumbs (skip hidden entries like the gif)
   const gaGrid = $('#gaGrid');
   IMAGES.forEach((img, i) => {
+    if (img.hidden) return;
     const b = document.createElement('button');
     b.className = 'ga-thumb' + (i === 0 ? ' active' : '');
     b.dataset.idx = i;
     b.innerHTML = `<img src="${imgSrc(img)}" alt="Subject ${i + 1}" loading="lazy"><span class="ga-num">${String(i + 1).padStart(2, '0')}</span>`;
     gaGrid.appendChild(b);
   });
+  function syncGalleryActive() {
+    $$('.ga-thumb').forEach(x => x.classList.toggle('active', parseInt(x.dataset.idx, 10) === state.index));
+  }
   gaGrid.addEventListener('click', (e) => {
     const t = e.target.closest('.ga-thumb');
     if (!t) return;
     switchTo(parseInt(t.dataset.idx, 10));
-    $$('.ga-thumb').forEach(x => x.classList.toggle('active', x === t));
+    syncGalleryActive();
+    closeOverlay();
+  });
+  // Shuffle: pick a random subject from the full set (including hidden/gif).
+  $('#gaShuffle').addEventListener('click', () => {
+    if (IMAGES.length <= 1) return;
+    let n;
+    do { n = Math.floor(Math.random() * IMAGES.length); } while (n === state.index);
+    switchTo(n);
+    syncGalleryActive();
     closeOverlay();
   });
 
