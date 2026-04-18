@@ -2671,7 +2671,7 @@
   const apTracks = $('#apTracks');
   const apPlayBtn = $('#apPlay');
   const apNowPlaying = $('#apNowPlaying');
-  let apMode = 'shuffle';      // 'shuffle' or 'loop'
+  let apMode = 'shuffle';      // 'shuffle' | 'loop' | 'linear' (linear == neither selected)
   let apIdx = 0;
 
   function trackTitle(file) {
@@ -2703,18 +2703,22 @@
     }
   }
 
-  function nextTrack() {
+  // Called when the current track ends. Shuffle -> random; loop -> same;
+  // linear (neither selected) -> next in playlist order.
+  function onTrackEnded() {
     if (apMode === 'shuffle') {
       if (PLAYLIST.length <= 1) { loadTrack(0); return; }
       let n;
       do { n = Math.floor(Math.random() * PLAYLIST.length); } while (n === apIdx);
       loadTrack(n);
+    } else if (apMode === 'loop') {
+      loadTrack(apIdx);
     } else {
-      loadTrack(apIdx); // loop == same track
+      loadTrack(apIdx + 1);
     }
   }
 
-  soundtrack.addEventListener('ended', nextTrack);
+  soundtrack.addEventListener('ended', onTrackEnded);
   soundtrack.addEventListener('play',  () => apPlayBtn.classList.add('playing'));
   soundtrack.addEventListener('pause', () => apPlayBtn.classList.remove('playing'));
 
@@ -2726,20 +2730,24 @@
       soundtrack.pause();
     }
   });
-  $('#apPrev').addEventListener('click', () => {
-    if (apMode === 'shuffle') nextTrack();
-    else loadTrack(apIdx - 1);
-  });
-  $('#apNext').addEventListener('click', nextTrack);
+  // Prev / Next always step linearly through the playlist, regardless
+  // of shuffle/loop mode.
+  $('#apPrev').addEventListener('click', () => loadTrack(apIdx - 1));
+  $('#apNext').addEventListener('click', () => loadTrack(apIdx + 1));
   apTracks.addEventListener('click', (e) => {
     const t = e.target.closest('.ap-track');
     if (!t) return;
     loadTrack(parseInt(t.dataset.idx, 10));
   });
+  // Mode buttons are toggles now: clicking the already-active one
+  // deselects it, putting the player in plain linear mode (neither
+  // button lit = 'linear').
   $$('.ap-mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      apMode = btn.dataset.mode;
-      $$('.ap-mode-btn').forEach(b => b.classList.toggle('active', b === btn));
+      apMode = (btn.dataset.mode === apMode) ? 'linear' : btn.dataset.mode;
+      $$('.ap-mode-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.mode === apMode)
+      );
     });
   });
 
