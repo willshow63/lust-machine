@@ -543,7 +543,7 @@
   .fab-radial {
     --l: 56px;
     position: absolute;
-    bottom: calc(var(--safe-b) + 1.2rem);
+    bottom: calc(var(--safe-b) + 3rem);
     right: calc(var(--safe-r) + 1rem);
     z-index: 20;
     width: var(--l);
@@ -636,17 +636,17 @@
   }
   .fab-radial .fab-toggle:checked ~ .fab-petal:hover .label { opacity: 1; }
   .fab-radial .fab-toggle:checked ~ .fab-games {
-    background: #e0a840;
+    background: #c88a3d; /* burnished amber — warm & cream-friendly */
     transform: translateY(calc(var(--l) * -1.55));
     transition-delay: 0s;
   }
   .fab-radial .fab-toggle:checked ~ .fab-audio {
-    background: #7a2d5c;
+    background: var(--heat-deep); /* deep oxblood red */
     transform: translate(calc(var(--l) * -1.1), calc(var(--l) * -1.1));
     transition-delay: 0.06s;
   }
   .fab-radial .fab-toggle:checked ~ .fab-gallery {
-    background: #3a6b7a;
+    background: #3a2820; /* espresso — warm brown rather than cold black */
     transform: translateX(calc(var(--l) * -1.55));
     transition-delay: 0.12s;
   }
