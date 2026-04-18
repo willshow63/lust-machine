@@ -153,7 +153,7 @@
     text-transform: uppercase;
     color: var(--ink-faint);
     opacity: 0;
-    animation: wkIn 1s 1.6s forwards, wkPulse 2.2s 2.6s ease-in-out infinite;
+    animation: wkIn 1s 1.6s forwards;
   }
   #welcome .w-sound {
     position: absolute;
@@ -186,9 +186,8 @@
     0%, 100% { opacity: 0.4; }
     50% { opacity: 1; }
   }
-  /* Heat dot animated in corner */
-  #welcome::before {
-    content: "";
+  /* Heat dot animated in corner — real element so JS can animate it. */
+  #welcome .w-dot {
     position: absolute;
     top: 2rem;
     left: 50%;
@@ -198,13 +197,9 @@
     border-radius: 50%;
     background: var(--heat);
     box-shadow: 0 0 25px rgba(215, 59, 42, 0.6);
-    animation: wkDot 1.8s ease-in-out infinite;
     opacity: 0;
-    animation: wkIn 1s 0s forwards, wkDot 1.8s 0.8s ease-in-out infinite;
-  }
-  @keyframes wkDot {
-    0%, 100% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.2); }
+    animation: wkIn 1s 0s forwards;
+    will-change: transform;
   }
 
   /* =====================================================
@@ -1795,6 +1790,7 @@
        WELCOME SPLASH — fades out on load
   ========================================================= -->
   <div id="welcome">
+    <div class="w-dot"></div>
     <div class="welcome-inner">
       <div class="w-kicker">Built for</div>
       <div class="w-name">Jennifer.</div>
@@ -2223,6 +2219,28 @@
   // WELCOME DISMISS — first tap/click dismisses and starts session
   // ============================================================
   const welcome = document.getElementById('welcome');
+  // Welcome-page ambient pulses via Web Animations API (CSS infinite
+  // animations on these were speeding up / juddering in some browsers).
+  if (welcome && welcome.animate) {
+    const hint = welcome.querySelector('.w-hint');
+    const dot = welcome.querySelector('.w-dot');
+    if (hint) {
+      hint.animate(
+        [ { opacity: 0.4 }, { opacity: 1 }, { opacity: 0.4 } ],
+        { duration: 2200, iterations: Infinity, easing: 'ease-in-out', delay: 2600 }
+      );
+    }
+    if (dot) {
+      dot.animate(
+        [
+          { transform: 'translateX(-50%) scale(1)' },
+          { transform: 'translateX(-50%) scale(1.2)' },
+          { transform: 'translateX(-50%) scale(1)' },
+        ],
+        { duration: 1800, iterations: Infinity, easing: 'ease-in-out', delay: 800 }
+      );
+    }
+  }
   const soundtrack = document.getElementById('soundtrack');
   const muteBtn = document.getElementById('muteBtn');
   let muted = false;
