@@ -2624,10 +2624,10 @@
   }
   function wipeAt(x, y) {
     sctx.globalCompositeOperation = 'destination-out';
-    const grad = sctx.createRadialGradient(x, y, 0, x, y, 45);
-    grad.addColorStop(0, 'rgba(0,0,0,1)');
-    grad.addColorStop(0.5, 'rgba(0,0,0,0.9)');
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    const grad = sctx.createRadialGradient(x, y, 0, x, y, 48);
+    grad.addColorStop(0,    'rgba(0,0,0,1)');
+    grad.addColorStop(0.8,  'rgba(0,0,0,0.98)');
+    grad.addColorStop(1,    'rgba(0,0,0,0)');
     sctx.fillStyle = grad;
     sctx.beginPath();
     sctx.arc(x, y, 50, 0, Math.PI * 2);
@@ -2659,7 +2659,7 @@
           for (let x = 0; x < w * dpr; x += step) {
             const idx = (y * w * dpr + x) * 4 + 3;
             if (idx < data.length) {
-              if (data[idx] < 50) clearCount++;
+              if (data[idx] < 180) clearCount++;
               total++;
             }
           }
