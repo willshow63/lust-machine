@@ -474,30 +474,85 @@
 
   .hm-label {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.28rem;
+    gap: 1px;
+    width: 100%;
+    padding: 0.3rem 0.15rem 0.35rem;
+    border: 1px solid rgba(30, 24, 21, 0.1);
+    border-radius: 8px;
     font-family: var(--sans);
     font-weight: 700;
-    font-size: 0.62rem;
-    letter-spacing: 0.22em;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--ink);
-  }
-  .hm-label .swap {
-    width: 26px; height: 26px;
-    padding: 6px;
-    margin: -4px -4px -4px 2px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.7;
     cursor: pointer;
-    transition: opacity 0.15s, transform 0.25s, background 0.15s;
+    background: rgba(30, 24, 21, 0.04);
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
   }
-  .hm-label .swap:hover { opacity: 1; transform: rotate(90deg); background: rgba(30,24,21,0.08); }
-  .hm-label .swap:active { background: rgba(30,24,21,0.14); }
-  .hm-label .swap svg { width: 100%; height: 100%; }
+  .hm-label:hover { background: rgba(30, 24, 21, 0.1); border-color: rgba(30, 24, 21, 0.25); }
+  .hm-label:active { background: rgba(30, 24, 21, 0.16); }
+  .hm-label #hmLabelText {
+    display: inline-block;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+  }
+  .hm-label .hm-change-hint {
+    font-size: 0.44rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    opacity: 0.85;
+    line-height: 1;
+  }
+  /* Meter picker popover */
+  .hm-pop {
+    position: absolute;
+    top: 0;
+    right: calc(100% + 10px);
+    min-width: 130px;
+    background: rgba(253, 246, 234, 0.98);
+    backdrop-filter: blur(16px) saturate(1.1);
+    -webkit-backdrop-filter: blur(16px) saturate(1.1);
+    border: 1px solid rgba(30, 24, 21, 0.15);
+    border-radius: 12px;
+    padding: 0.3rem;
+    box-shadow: 0 14px 36px rgba(30, 24, 21, 0.28);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    opacity: 0;
+    transform: translateX(6px) scale(0.97);
+    transform-origin: top right;
+    pointer-events: none;
+    transition: opacity 0.18s, transform 0.18s;
+    z-index: 40;
+  }
+  .hm-pop.open {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    pointer-events: auto;
+  }
+  .hm-pop-item {
+    padding: 0.5rem 0.8rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .hm-pop-item:hover { background: rgba(30, 24, 21, 0.08); }
+  .hm-pop-item.active {
+    background: var(--ink);
+    color: var(--bg);
+  }
 
   .hm-track {
     position: relative;
@@ -1811,12 +1866,10 @@
        FLOATING HEAT METER
   ========================================================= -->
   <div class="floater heat-meter" id="heatMeter">
-    <div class="hm-label">
+    <button class="hm-label" id="hmSwap" aria-label="Change meter" aria-haspopup="true">
       <span id="hmLabelText">Heat</span>
-      <button class="swap" id="hmSwap" aria-label="Change meter">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>
-      </button>
-    </div>
+      <span class="hm-change-hint">tap &#9662;</span>
+    </button>
     <div class="hm-track" id="hmTrack">
       <div class="hm-ticks">
         <span></span><span></span><span></span><span></span><span></span>
@@ -2353,14 +2406,54 @@
   });
   hmTrack.addEventListener('pointercancel', () => { hmDragging = false; });
 
-  // Swap button cycles meters
-  $('#hmSwap').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const order = ['contrast', 'heat', 'focus', 'expose', 'shadows'];
-    const next = order[(order.indexOf(state.activeMeter) + 1) % order.length];
-    state.activeMeter = next;
-    applyMeter();
-  });
+  // Label opens a small popover with the full list of meters
+  (function wireMeterPicker() {
+    const labelBtn = $('#hmSwap');
+    const METERS = [
+      { id: 'contrast', name: 'Contrast' },
+      { id: 'heat',     name: 'Heat'     },
+      { id: 'focus',    name: 'Focus'    },
+      { id: 'expose',   name: 'Expose'   },
+      { id: 'shadows',  name: 'Shadows'  },
+    ];
+    const pop = document.createElement('div');
+    pop.className = 'hm-pop';
+    pop.innerHTML = METERS.map(m =>
+      `<button class="hm-pop-item" data-meter="${m.id}">${m.name}</button>`
+    ).join('');
+    heatMeterEl.appendChild(pop);
+
+    function syncActive() {
+      pop.querySelectorAll('.hm-pop-item').forEach(b => {
+        b.classList.toggle('active', b.dataset.meter === state.activeMeter);
+      });
+    }
+    function openPop() {
+      syncActive();
+      pop.classList.add('open');
+      document.addEventListener('pointerdown', onDocDown, true);
+    }
+    function closePop() {
+      pop.classList.remove('open');
+      document.removeEventListener('pointerdown', onDocDown, true);
+    }
+    function onDocDown(e) {
+      if (!pop.contains(e.target) && e.target !== labelBtn && !labelBtn.contains(e.target)) {
+        closePop();
+      }
+    }
+    labelBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (pop.classList.contains('open')) closePop(); else openPop();
+    });
+    pop.addEventListener('click', (e) => {
+      const b = e.target.closest('.hm-pop-item');
+      if (!b) return;
+      state.activeMeter = b.dataset.meter;
+      applyMeter();
+      closePop();
+    });
+  })();
 
   function capitalize(s) { return s[0].toUpperCase() + s.slice(1); }
 
