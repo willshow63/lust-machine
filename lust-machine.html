@@ -256,16 +256,16 @@
   }
   @keyframes pulseBeat {
     0%, 60%, 100% { transform: scale(1); }
-    15%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.0008)); }
+    15%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.00048)); }
     30%           { transform: scale(1); }
-    45%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.00045)); }
+    45%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.00027)); }
   }
   #pulseVignette {
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 12;
-    background: radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(215, 59, 42, calc(var(--pulse-v, 0) * 0.006)) 100%);
+    background: radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(215, 59, 42, calc(var(--pulse-v, 0) * 0.0036)) 100%);
     mix-blend-mode: multiply;
     animation: pulseVignBeat calc(max(0.45s, 1.05s - var(--pulse-v, 0) * 0.006s)) ease-in-out infinite;
     opacity: 0.6;
@@ -273,9 +273,9 @@
   }
   @keyframes pulseVignBeat {
     0%, 60%, 100% { opacity: 0.45; transform: scale(1); }
-    15%           { opacity: 1;    transform: scale(1.015); }
+    15%           { opacity: 1;    transform: scale(1.009); }
     30%           { opacity: 0.35; transform: scale(1); }
-    45%           { opacity: 0.8;  transform: scale(1.008); }
+    45%           { opacity: 0.8;  transform: scale(1.0048); }
   }
 
   /* =====================================================
@@ -618,18 +618,18 @@
   }
   .fab-radial .fab-toggle:checked ~ .fab-petal:hover .label { opacity: 1; }
   .fab-radial .fab-toggle:checked ~ .fab-games {
-    background: var(--heat-2);
-    transform: translateY(calc(var(--l) * -1.2));
+    background: #e0a840;
+    transform: translateY(calc(var(--l) * -1.55));
     transition-delay: 0s;
   }
   .fab-radial .fab-toggle:checked ~ .fab-audio {
-    background: var(--heat-deep);
-    transform: translate(calc(var(--l) * -0.85), calc(var(--l) * -0.85));
+    background: #7a2d5c;
+    transform: translate(calc(var(--l) * -1.1), calc(var(--l) * -1.1));
     transition-delay: 0.06s;
   }
   .fab-radial .fab-toggle:checked ~ .fab-gallery {
-    background: var(--ink);
-    transform: translateX(calc(var(--l) * -1.2));
+    background: #3a6b7a;
+    transform: translateX(calc(var(--l) * -1.55));
     transition-delay: 0.12s;
   }
   .fab-radial .fab-toggle:checked ~ .fab-petal:hover { opacity: 0.92; }
@@ -1543,112 +1543,6 @@
     line-height: 1.4;
   }
 
-  /* =====================================================
-     OVERWHELMING PAYOFF
-  ===================================================== */
-  #payoff {
-    position: absolute;
-    inset: 0;
-    z-index: 100;
-    pointer-events: none;
-    opacity: 0;
-  }
-  #payoff.go {
-    opacity: 1;
-    animation: payoffAnim 1.8s cubic-bezier(.1,.6,.3,1) forwards;
-  }
-  @keyframes payoffAnim {
-    0% { opacity: 0; }
-    15% { opacity: 1; }
-    100% { opacity: 0; }
-  }
-  #payoff .flash {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8), transparent 60%);
-    animation: flashFade 0.9s cubic-bezier(.2,0,.2,1) forwards;
-  }
-  @keyframes flashFade {
-    0% { opacity: 0; }
-    15% { opacity: 1; }
-    100% { opacity: 0; }
-  }
-  #payoff .quake {
-    position: absolute;
-    inset: 0;
-  }
-  #app.shaking {
-    animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
-  }
-  @keyframes shake {
-    0%, 100% { transform: translate(0,0); }
-    10% { transform: translate(-6px,4px) rotate(-0.4deg); }
-    20% { transform: translate(5px,-3px) rotate(0.5deg); }
-    30% { transform: translate(-4px,5px) rotate(-0.3deg); }
-    40% { transform: translate(6px,2px) rotate(0.4deg); }
-    50% { transform: translate(-3px,-4px) rotate(-0.2deg); }
-    60% { transform: translate(4px,3px) rotate(0.3deg); }
-    70% { transform: translate(-5px,-2px) rotate(-0.3deg); }
-    80% { transform: translate(3px,4px) rotate(0.2deg); }
-    90% { transform: translate(-2px,-2px) rotate(-0.1deg); }
-  }
-  #payoff .bigword {
-    position: absolute;
-    top: 42%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: var(--display);
-    font-weight: 800;
-    font-style: italic;
-    font-size: clamp(4rem, 22vw, 12rem);
-    line-height: 0.85;
-    letter-spacing: -0.04em;
-    color: var(--heat);
-    text-transform: uppercase;
-    opacity: 0;
-    animation: bigword 1.6s cubic-bezier(.2,0,.2,1) forwards;
-    white-space: nowrap;
-    text-shadow: 0 0 40px rgba(215, 59, 42, 0.5);
-  }
-  #payoff .bigquote {
-    position: absolute;
-    top: 62%;
-    left: 50%;
-    transform: translate(-50%, 0);
-    font-family: var(--display);
-    font-style: italic;
-    font-weight: 500;
-    font-size: clamp(1.1rem, 3.4vw, 1.6rem);
-    line-height: 1.25;
-    color: var(--ink);
-    max-width: min(92%, 620px);
-    text-align: center;
-    letter-spacing: -0.01em;
-    opacity: 0;
-    background: rgba(253, 246, 234, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0.85rem 1.4rem;
-    border-radius: 16px;
-    border: 1px solid rgba(215, 59, 42, 0.3);
-    box-shadow: 0 10px 32px rgba(30, 24, 21, 0.25);
-  }
-  #payoff.go .bigquote {
-    animation: bigquote 2.3s 2.8s cubic-bezier(.2,0,.2,1) forwards;
-  }
-  @keyframes bigquote {
-    0%   { opacity: 0; transform: translate(-50%, 12px) scale(0.97); filter: blur(8px); }
-    15%  { opacity: 1; transform: translate(-50%, 0) scale(1); filter: blur(0); }
-    85%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -8px) scale(0.98); }
-  }
-  @keyframes bigword {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); letter-spacing: -0.1em; filter: blur(30px); }
-    25% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); letter-spacing: -0.04em; filter: blur(0); }
-    75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); filter: blur(20px); }
-  }
-
   /* Ripple canvas (tap feedback) */
   #ripples {
     position: absolute;
@@ -2063,15 +1957,6 @@
     </div>
   </div>
 
-  <!-- =========================================================
-       OVERWHELMING PAYOFF
-  ========================================================= -->
-  <div id="payoff">
-    <div class="flash"></div>
-    <div class="bigword" id="payoffWord">BOILED</div>
-    <div class="bigquote" id="payoffQuote">"Age is just a number. And I'll make sure you lose count."</div>
-  </div>
-
   <!-- Pulse heartbeat vignette (alpha driven by --pulse-v) -->
   <div id="pulseVignette"></div>
 
@@ -2262,10 +2147,6 @@
     } else {
       heatMeterEl.classList.remove('overheating');
     }
-    // Trigger payoff at 100
-    if (state.activeMeter === 'heat' && state.heat >= 100 && !payoffLock) {
-      runPayoff();
-    }
   }
   applyMeter();
 
@@ -2305,213 +2186,6 @@
 
   function capitalize(s) { return s[0].toUpperCase() + s.slice(1); }
 
-  // ============================================================
-  // OVERWHELMING PAYOFF (heat == 100) — intense fireworks
-  // ============================================================
-  let payoffLock = false;
-  const payoffWords = ['BOILED', 'OVERHEATED', 'UNWELL', 'SATURATED', 'MELTING', 'MAXED', 'FOR JEN', 'JEN APPROVED', 'ALL OF IT'];
-
-  // Refined firework palette — champagne, light blue, light purple, silver
-  const FW_PALETTE = [
-    { h: 46, s: 78, l: 62 },  // bright champagne
-    { h: 200, s: 68, l: 62 }, // light blue
-    { h: 275, s: 52, l: 64 }, // light purple / lavender
-    { h: 215, s: 10, l: 60 }  // silver
-  ];
-  function pickFwColor(excludeIdx) {
-    let idx;
-    do {
-      idx = Math.floor(Math.random() * FW_PALETTE.length);
-    } while (idx === excludeIdx && FW_PALETTE.length > 1);
-    return { ...FW_PALETTE[idx], idx };
-  }
-  const payoffEl = $('#payoff');
-  const payoffWordEl = $('#payoffWord');
-  const appEl = $('#app');
-
-  function fireworkLaunch(targetX, targetY, opts) {
-    opts = opts || {};
-    const startX = targetX + (Math.random() - 0.5) * 40;
-    const startY = window.innerHeight + 20;
-    const duration = 650 + Math.random() * 200;
-    const riseStart = performance.now();
-    const color = opts.color || pickFwColor();
-    function riseStep() {
-      const t = (performance.now() - riseStart) / duration;
-      if (t >= 1) {
-        fireworkBurst(targetX, targetY, color, opts.scale || 1);
-        return;
-      }
-      const eased = 1 - Math.pow(1 - t, 2);
-      const x = startX + (targetX - startX) * eased;
-      const y = startY + (targetY - startY) * eased;
-      // Trail uses champagne-ish sparks while rising regardless of final color
-      parts.push({
-        x: x + (Math.random() - 0.5) * 4,
-        y: y,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: 0.8 + Math.random() * 0.5,
-        life: 0.7,
-        decay: 0.04,
-        size: 1 + Math.random() * 1.4,
-        hue: 46,
-        sat: 75,
-        light: 70,
-        kind: 'trail'
-      });
-      requestAnimationFrame(riseStep);
-    }
-    requestAnimationFrame(riseStep);
-  }
-
-  function fireworkBurst(x, y, color, scale) {
-    scale = scale || 1;
-    if (!color || typeof color !== 'object') color = pickFwColor();
-    const { h, s, l } = color;
-    const count = Math.floor(60 * scale);
-    for (let i = 0; i < count; i++) {
-      const a = (i / count) * Math.PI * 2 + Math.random() * 0.15;
-      const speed = (3 + Math.random() * 5) * scale;
-      parts.push({
-        x: x, y: y,
-        vx: Math.cos(a) * speed,
-        vy: Math.sin(a) * speed,
-        life: 1,
-        decay: 0.012 + Math.random() * 0.012,
-        size: 1.8 + Math.random() * 2.2,
-        hue: h + (Math.random() - 0.5) * 6,
-        sat: s + (Math.random() - 0.5) * 10,
-        light: l + (Math.random() - 0.5) * 8,
-        kind: 'spark',
-        gravity: 0.08,
-        friction: 0.97
-      });
-    }
-    for (let i = 0; i < 20 * scale; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const speed = 1 + Math.random() * 3;
-      parts.push({
-        x: x, y: y,
-        vx: Math.cos(a) * speed,
-        vy: Math.sin(a) * speed - 1,
-        life: 0.8,
-        decay: 0.02 + Math.random() * 0.02,
-        size: 1 + Math.random() * 1.4,
-        hue: h + (Math.random() - 0.5) * 6,
-        sat: s,
-        light: l + 5,
-        kind: 'ember',
-        gravity: 0.05
-      });
-    }
-    // Shockwave ring
-    shockwaves.push({
-      x, y, r: 0, maxR: 200 * scale, life: 1, hue: hue
-    });
-    // Crackling secondary bursts — bright white-champagne sparkle
-    setTimeout(() => {
-      for (let i = 0; i < 12; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const d = 20 + Math.random() * 40;
-        parts.push({
-          x: x + Math.cos(a) * d,
-          y: y + Math.sin(a) * d,
-          vx: (Math.random() - 0.5) * 2,
-          vy: (Math.random() - 0.5) * 2 - 1,
-          life: 0.6,
-          decay: 0.025,
-          size: 1 + Math.random() * 1.2,
-          hue: 46,
-          sat: 30,
-          light: 85,
-          kind: 'crackle',
-          gravity: 0.04
-        });
-      }
-    }, 120);
-  }
-
-  function runPayoff() {
-    payoffLock = true;
-    payoffWordEl.textContent = payoffWords[Math.floor(Math.random() * payoffWords.length)];
-    payoffEl.classList.add('go');
-    appEl.classList.add('shaking');
-
-    const cx = window.innerWidth / 2;
-    const cy = window.innerHeight * 0.45;
-
-    // Phase 1 (0ms): center mega-burst + shockwave + initial fireworks
-    fireworkBurst(cx, cy, pickFwColor(), 2.2);
-    shockwaves.push({ x: cx, y: cy, r: 0, maxR: Math.max(window.innerWidth, window.innerHeight), life: 1, hue: 46, sat: 40, light: 75, thick: 3 });
-
-    // Phase 2 (150-2400ms): cascade of 14 fireworks across the screen
-    for (let i = 0; i < 14; i++) {
-      setTimeout(() => {
-        const x = 60 + Math.random() * (window.innerWidth - 120);
-        const y = window.innerHeight * (0.12 + Math.random() * 0.45);
-        fireworkLaunch(x, y, { color: pickFwColor(), scale: 0.8 + Math.random() * 0.5 });
-      }, 150 + i * 170);
-    }
-
-    // Phase 3 (1500-3200ms): rapid-fire small bursts
-    for (let i = 0; i < 20; i++) {
-      setTimeout(() => {
-        const x = Math.random() * window.innerWidth;
-        const y = Math.random() * window.innerHeight * 0.75;
-        fireworkBurst(x, y, pickFwColor(), 0.55);
-      }, 1500 + i * 85);
-    }
-
-    // Phase 4 (3200ms): secondary word + final triple burst
-    setTimeout(() => {
-      payoffWordEl.textContent = payoffWords[Math.floor(Math.random() * payoffWords.length)];
-      payoffWordEl.style.animation = 'none';
-      void payoffWordEl.offsetHeight;
-      payoffWordEl.style.animation = 'bigword 1.6s cubic-bezier(.2,0,.2,1) forwards';
-    }, 3200);
-    setTimeout(() => {
-      // Three distinct palette picks
-      const c1 = pickFwColor();
-      const c2 = pickFwColor(c1.idx);
-      const c3 = pickFwColor(c2.idx);
-      fireworkBurst(cx - 150, cy, c1, 1.8);
-      fireworkBurst(cx + 150, cy, c2, 1.8);
-      fireworkBurst(cx, cy - 80, c3, 2.4);
-      shockwaves.push({ x: cx, y: cy, r: 0, maxR: Math.max(window.innerWidth, window.innerHeight) * 1.2, life: 1, hue: 46, sat: 40, light: 75, thick: 4 });
-    }, 3400);
-
-    // Phase 5 (4600ms+): finale cascade
-    setTimeout(() => {
-      for (let i = 0; i < 8; i++) {
-        setTimeout(() => {
-          fireworkBurst(Math.random() * window.innerWidth, Math.random() * window.innerHeight * 0.8, pickFwColor(), 0.8);
-        }, i * 60);
-      }
-    }, 4600);
-
-    // Glitch-jump images during the chaos
-    let jumpCount = 0;
-    const jumpInt = setInterval(() => {
-      jumpCount++;
-      switchTo(Math.floor(Math.random() * IMAGES.length));
-      if (jumpCount >= 12) clearInterval(jumpInt);
-    }, 180);
-
-    // Clean up after ~6s
-    setTimeout(() => {
-      appEl.classList.remove('shaking');
-      // Re-trigger shake in short bursts for a second wave
-      appEl.classList.add('shaking');
-      setTimeout(() => appEl.classList.remove('shaking'), 400);
-    }, 3000);
-
-    setTimeout(() => {
-      payoffEl.classList.remove('go');
-      state.heat = 45;
-      applyMeter();
-      payoffLock = false;
-    }, 6200);
-  }
 
   // ============================================================
   // RADIAL FAB + PICKER OVERLAYS
