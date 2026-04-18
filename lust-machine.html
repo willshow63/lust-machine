@@ -44,6 +44,8 @@
     --pulse-v: 60;
     --focus-v: 100;
     --expose-v: 55;
+    --contrast-v: 50;
+    --shadows-v: 50;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -246,7 +248,9 @@
     filter:
       saturate(calc(0.95 + var(--heat-v) * 0.004))
       contrast(calc(1 + var(--heat-v) * 0.0015))
+      contrast(calc(0.7 + var(--contrast-v) * 0.006))
       brightness(calc(0.8 + var(--expose-v) * 0.005))
+      brightness(calc(1 + (50 - var(--shadows-v)) * 0.004))
       blur(calc(max(0, (60 - var(--focus-v))) * 0.04px));
   }
   #stage img.active {
@@ -268,29 +272,7 @@
     transition: background 0.3s;
   }
 
-  /* =====================================================
-     AMBIENT HEARTBEAT — slow, significant, consistent
-     Slower than resting (~46 BPM) so each beat reads as a distinct
-     event. Amplitude bumped to ~4% so movement is visible regardless
-     of the image's subject or viewport size.
-     Applied to the IMG (not .img-wrap) so the 14s zoom-in transition
-     on img.active doesn't compete.
-  ===================================================== */
-  #stage img {
-    animation: pulseBeat 1.3s ease-in-out infinite;
-    transform-origin: 50% 50%;
-    will-change: transform;
-  }
-  @keyframes pulseBeat {
-    0%, 60%, 100% { transform: scale(1); }
-    14%           { transform: scale(1.04); }
-    30%           { transform: scale(1); }
-    44%           { transform: scale(1.02); }
-  }
-  /* Override the prior img.active slow-zoom so it doesn't stack
-     with the pulse (which is what caused inconsistent-looking
-     movement across images). */
-  #stage img.active { transform: none; }
+  /* Pulse heartbeat effect disabled. */
   #pulseVignette { display: none; }
 
   /* =====================================================
@@ -491,17 +473,24 @@
     color: var(--ink);
   }
   .hm-label .swap {
-    width: 12px; height: 12px;
-    opacity: 0.5;
+    width: 26px; height: 26px;
+    padding: 6px;
+    margin: -4px -4px -4px 2px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.2s;
+    transition: opacity 0.15s, transform 0.25s, background 0.15s;
   }
-  .hm-label .swap:hover { opacity: 1; transform: rotate(90deg); }
+  .hm-label .swap:hover { opacity: 1; transform: rotate(90deg); background: rgba(30,24,21,0.08); }
+  .hm-label .swap:active { background: rgba(30,24,21,0.14); }
   .hm-label .swap svg { width: 100%; height: 100%; }
 
   .hm-track {
     position: relative;
-    width: 18px;
+    width: 26px;
     height: 200px;
     background: rgba(30, 24, 21, 0.08);
     border-radius: 12px;
@@ -515,7 +504,6 @@
     height: calc(var(--heat-v) * 1%);
     background: linear-gradient(180deg, var(--heat-2), var(--heat) 40%, var(--heat-deep));
     box-shadow: 0 0 18px var(--heat-glow);
-    transition: height 0.12s linear;
     border-radius: 12px;
   }
   .hm-track .hm-fill::after {
@@ -587,6 +575,7 @@
     border-radius: 50%;
     background: var(--heat);
     box-shadow:
+      0 10px 22px rgba(30, 24, 21, 0.45),
       0 14px 34px rgba(215, 59, 42, 0.42),
       0 0 0 1px rgba(30, 24, 21, 0.18),
       inset 0 2px 5px rgba(255, 255, 255, 0.2);
@@ -629,8 +618,7 @@
     align-items: center;
     justify-content: center;
     box-shadow:
-      0 10px 24px rgba(30, 24, 21, 0.3),
-      0 0 0 1px rgba(30, 24, 21, 0.15),
+      0 0 0 1px rgba(30, 24, 21, 0.12),
       inset 0 2px 4px rgba(255, 255, 255, 0.18);
     transition-property: transform, opacity;
     transition-duration: 0.38s;
@@ -816,6 +804,61 @@
     opacity: 1;
     pointer-events: auto;
   }
+
+  /* Picker sheets: make handle clearly grabby for swipe-dismiss */
+  .menu-sheet .handle {
+    cursor: grab;
+    touch-action: none;
+  }
+  .menu-sheet .handle:active { cursor: grabbing; }
+  .menu-sheet.swiping {
+    transition: none !important;
+  }
+
+  /* Games picker: 'More to come' sits under the grid */
+  .more-to-come {
+    margin-top: 1.1rem;
+    text-align: center;
+    font-family: var(--sans);
+    font-style: italic;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    opacity: 0.8;
+  }
+
+  /* Audio player header + request button */
+  .lm-audio .ap-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
+  .lm-audio .ap-head h2 { margin-bottom: 0.25rem; }
+  .lm-audio .ap-head .sub { margin-bottom: 0; }
+  .ap-request {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.75rem;
+    background: var(--heat);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px var(--heat-glow);
+    transition: transform 0.12s, background 0.15s;
+  }
+  .ap-request:hover { background: var(--heat-2); transform: translateY(-1px); }
+  .ap-request:active { transform: scale(0.96); }
+  .ap-request svg { width: 14px; height: 14px; }
 
   /* Audio player */
   .lm-audio .ap-controls {
@@ -1813,27 +1856,28 @@
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8c0-2 2-3 3-3s2 1 2 2-1 1-1 2 1 2 2 2M12 14c0-2 2-3 3-3s2 1 2 2-1 1-1 2 1 2 2 2M4 20h16"/></svg></div>
           <div class="text"><div class="n">Steam Wipe</div><div class="d">Clear the fog</div></div>
         </button>
-        <button class="tile" data-game="heartbeat">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg></div>
-          <div class="text"><div class="n">Sync</div><div class="d">Tap in rhythm</div></div>
-        </button>
         <button class="tile" data-game="slot">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="5" height="12" rx="1"/><rect x="9.5" y="6" width="5" height="12" rx="1"/><rect x="16" y="6" width="5" height="12" rx="1"/></svg></div>
           <div class="text"><div class="n">Slot</div><div class="d">Three of a kind</div></div>
         </button>
-        <button class="tile" data-game="breath">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-          <div class="text"><div class="n">Hold</div><div class="d">Don't let go</div></div>
-        </button>
       </div>
+      <div class="more-to-come">More to come..</div>
     </div>
   </div>
 
   <!-- Audio player -->
   <div class="menu-sheet lm-picker lm-audio" id="audioPlayer">
     <div class="handle"></div>
-    <h2>Soundtrack</h2>
-    <div class="sub" id="apNowPlaying">Not playing.</div>
+    <div class="ap-head">
+      <div>
+        <h2>Soundtrack</h2>
+        <div class="sub" id="apNowPlaying">Not playing.</div>
+      </div>
+      <button class="ap-request" id="apRequest" aria-label="Request a song to add">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Request</span>
+      </button>
+    </div>
 
     <div class="ap-controls">
       <button class="ap-ctl" id="apPrev" aria-label="Previous">
@@ -2102,7 +2146,9 @@
     pulse: 60,
     focus: 100,
     expose: 55,
-    activeMeter: 'heat',
+    contrast: 50,
+    shadows: 50,
+    activeMeter: 'contrast',
     session: Date.now(),
     slotBest: null,
   };
@@ -2157,11 +2203,16 @@
   // ============================================================
   // BUILD STAGE (subject imagery)
   // ============================================================
-  // Drop any subjects the user has asked us to hide from rotation.
+  // Rewrite every base64 IMAGES entry to load from the file on disk
+  // instead, so user updates to the image files are reflected without
+  // re-encoding. Also honor renames and removals made outside the app.
   {
+    const RENAMES = { 'GQ HYPE-Heated Rivalry.webp': 'GQ HYPE-Heated Rivalry.jpg' };
     const REMOVE = new Set(['normal_CSF002.jpg']);
     for (let i = IMAGES.length - 1; i >= 0; i--) {
-      if (REMOVE.has(IMAGES[i].name)) IMAGES.splice(i, 1);
+      const name = RENAMES[IMAGES[i].name] || IMAGES[i].name;
+      if (REMOVE.has(name)) { IMAGES.splice(i, 1); continue; }
+      IMAGES[i] = { name, src: name };
     }
   }
   // Splice in the Chris Farley gif as the 3rd subject (hidden from gallery,
@@ -2174,7 +2225,7 @@
     { name: 'CSF021.jpg', src: 'CSF021.jpg' },
   );
   function imgSrc(entry) {
-    return entry.src ? entry.src : 'data:image/jpeg;base64,' + entry.b64;
+    return entry.src ? encodeURI(entry.src) : 'data:image/jpeg;base64,' + entry.b64;
   }
   const imgWrap = $('#imgWrap');
   IMAGES.forEach((img, i) => {
@@ -2241,9 +2292,10 @@
     const parent = hmValue.parentElement;
     parent.querySelector('.unit').textContent =
       state.activeMeter === 'heat' ? '°' :
-      state.activeMeter === 'focus' ? '%' : 'ev';
+      state.activeMeter === 'focus' ? '%' :
+      state.activeMeter === 'expose' ? 'ev' : '';
     hmLabelText.textContent = capitalize(state.activeMeter);
-    for (const m of ['heat', 'focus', 'expose']) {
+    for (const m of ['heat', 'focus', 'expose', 'contrast', 'shadows']) {
       document.documentElement.style.setProperty('--' + m + '-v', state[m]);
     }
 
@@ -2264,6 +2316,15 @@
     state[state.activeMeter] = pct;
     applyMeter();
   }
+  let pendingY = null, hmRaf = null;
+  function queueMeter(y) {
+    pendingY = y;
+    if (hmRaf) return;
+    hmRaf = requestAnimationFrame(() => {
+      hmRaf = null;
+      if (pendingY != null) setMeterFromY(pendingY);
+    });
+  }
   hmTrack.addEventListener('pointerdown', (e) => {
     hmDragging = true;
     setMeterFromY(e.clientY);
@@ -2272,11 +2333,12 @@
   });
   hmTrack.addEventListener('pointermove', (e) => {
     if (!hmDragging) return;
-    setMeterFromY(e.clientY);
+    queueMeter(e.clientY);
     e.preventDefault();
   });
   hmTrack.addEventListener('pointerup', (e) => {
     hmDragging = false;
+    if (pendingY != null) { setMeterFromY(pendingY); pendingY = null; }
     try { hmTrack.releasePointerCapture(e.pointerId); } catch(e) {}
   });
   hmTrack.addEventListener('pointercancel', () => { hmDragging = false; });
@@ -2284,7 +2346,7 @@
   // Swap button cycles meters
   $('#hmSwap').addEventListener('click', (e) => {
     e.stopPropagation();
-    const order = ['heat', 'focus', 'expose'];
+    const order = ['contrast', 'heat', 'focus', 'expose', 'shadows'];
     const next = order[(order.indexOf(state.activeMeter) + 1) % order.length];
     state.activeMeter = next;
     applyMeter();
@@ -2367,6 +2429,36 @@
   $('#fabAudio').addEventListener('click', () => openOverlay('audio'));
   $('#fabGallery').addEventListener('click', () => openOverlay('gallery'));
 
+  // Swipe-down to dismiss: grab the .handle on any picker and drag it
+  // off the bottom. Over 60px of travel dismisses; less snaps back.
+  Object.values(pickers).forEach(sheet => {
+    const handle = sheet.querySelector('.handle');
+    if (!handle) return;
+    let startY = 0, dragging = false, dy = 0;
+    handle.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      startY = e.clientY;
+      dy = 0;
+      sheet.classList.add('swiping');
+      handle.setPointerCapture(e.pointerId);
+    });
+    handle.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      dy = Math.max(0, e.clientY - startY);
+      sheet.style.transform = `translateY(${dy}px)`;
+    });
+    function end(e) {
+      if (!dragging) return;
+      dragging = false;
+      sheet.classList.remove('swiping');
+      sheet.style.transform = '';
+      try { handle.releasePointerCapture(e.pointerId); } catch(_) {}
+      if (dy > 60) closeOverlay();
+    }
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
+  });
+
   // Games picker — tile → open game
   pickers.games.addEventListener('click', (e) => {
     const tile = e.target.closest('.tile');
@@ -2416,12 +2508,11 @@
     "I Want It That Way.mp3",
     "If I Could Turn Back Time.mp3",
     "Let's Get It On.mp3",
-    "Madonna - Like A Prayer.mp3",
+    "Like A Prayer.mp3",
     "Never Gonna Give You Up.mp3",
     "Self Control.mp3",
     "Smooth Operator.mp3",
     "Take My Breath Away.mp3",
-    "lust-machine-song.mp3",
   ];
   const apTracks = $('#apTracks');
   const apPlayBtn = $('#apPlay');
@@ -2498,8 +2589,23 @@
     });
   });
 
-  // Always open on "Like A Prayer" (don't autoplay until welcome dismissed).
-  const START_TRACK = 'Madonna - Like A Prayer.mp3';
+  // Song-request button: prompt for a title, open a prefilled email
+  // so the request lands in the maintainer's inbox.
+  $('#apRequest').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const song = prompt('Request a song — title and artist if you know it:');
+    if (!song || !song.trim()) return;
+    const subject = 'Lust Machine — song request';
+    const body =
+      'Please add:\n\n' + song.trim() +
+      '\n\n— sent from Lust Machine';
+    const href = 'mailto:wgoley@gmail.com?subject=' +
+      encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    window.location.href = href;
+  });
+
+  // Always open on "Baby One More Time" (don't autoplay until welcome dismissed).
+  const START_TRACK = 'Baby One More Time.mp3';
   apIdx = Math.max(0, PLAYLIST.indexOf(START_TRACK));
   soundtrack.src = encodeURI(PLAYLIST[apIdx]);
   apNowPlaying.textContent = '♪  ' + trackTitle(PLAYLIST[apIdx]);
