@@ -45,7 +45,6 @@
     --focus-v: 100;
     --expose-v: 55;
     --contrast-v: 50;
-    --shadows-v: 50;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -250,7 +249,6 @@
       contrast(calc(1 + var(--heat-v) * 0.0015))
       contrast(calc(0.7 + var(--contrast-v) * 0.006))
       brightness(calc(0.8 + var(--expose-v) * 0.005))
-      brightness(calc(1 + (50 - var(--shadows-v)) * 0.004))
       blur(calc(max(0, (60 - var(--focus-v))) * 0.04px));
   }
   #stage img.active {
@@ -272,17 +270,11 @@
     transition: background 0.3s;
   }
 
-  /* Ambient background pulse — slow, constant, no meter tie-in. */
+  /* Ambient background pulse is driven by JS (Element.animate) so it
+     can't be disrupted by CSS animation restarts. Only define the
+     transform-origin here. */
   #stage .img-wrap {
-    animation: bgPulse 1.45s ease-in-out infinite;
     transform-origin: 50% 50%;
-    will-change: transform;
-  }
-  @keyframes bgPulse {
-    0%, 60%, 100% { transform: scale(1); }
-    14%           { transform: scale(1.022); }
-    30%           { transform: scale(1); }
-    44%           { transform: scale(1.011); }
   }
   #pulseVignette { display: none; }
 
@@ -419,7 +411,7 @@
   .heat-meter {
     top: calc(var(--safe-t) + 7rem);
     right: calc(var(--safe-r) + 1rem);
-    width: 78px;
+    width: 92px;
     border-radius: 20px;
     background: rgba(253, 246, 234, 0.96);
     backdrop-filter: blur(18px) saturate(1.2);
@@ -496,8 +488,8 @@
   .hm-label:active { background: rgba(30, 24, 21, 0.16); }
   .hm-label #hmLabelText {
     display: inline-block;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
   }
   .hm-label .hm-change-hint {
     font-size: 0.44rem;
@@ -1033,6 +1025,12 @@
     justify-content: space-between;
     gap: 0.8rem;
     margin-bottom: 0.9rem;
+    flex-wrap: wrap;
+  }
+  .lm-gallery .ga-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
   }
   .lm-gallery .ga-head h2 { margin-bottom: 0.25rem; }
   .lm-gallery .ga-head .sub { margin-bottom: 0; }
@@ -1749,7 +1747,7 @@
   ===================================================== */
   @media (min-width: 760px) {
     .hm-track { height: 240px; }
-    .heat-meter { width: 84px; padding: 0.9rem 0.6rem; }
+    .heat-meter { width: 100px; padding: 0.9rem 0.6rem; }
     .hm-value { font-size: 1.3rem; }
     .caption .line { font-size: 2.4rem; }
   }
@@ -1977,10 +1975,16 @@
         <h2>Gallery</h2>
         <div class="sub">Jump to any subject — or let fate pick.</div>
       </div>
-      <button class="ga-shuffle" id="gaShuffle" aria-label="Shuffle to random subject">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
-        <span>Shuffle</span>
-      </button>
+      <div class="ga-actions">
+        <button class="ap-request" id="gaSubmit" aria-label="Submit a photo to the gallery">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <span>Submit</span>
+        </button>
+        <button class="ga-shuffle" id="gaShuffle" aria-label="Shuffle to random subject">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+          <span>Shuffle</span>
+        </button>
+      </div>
     </div>
     <div class="ga-grid" id="gaGrid"></div>
   </div>
@@ -2210,7 +2214,6 @@
     focus: 100,
     expose: 55,
     contrast: 50,
-    shadows: 50,
     activeMeter: 'contrast',
     session: Date.now(),
     slotBest: null,
@@ -2300,6 +2303,31 @@
     imgWrap.appendChild(el);
   });
 
+  // Ambient background pulse via the Web Animations API. Runs on the
+  // composited layer and is not subject to CSS animation restarts or
+  // transition interference. Fixed ~38 BPM lub-dub forever.
+  (function startBgPulse() {
+    if (!imgWrap.animate) return; // older browser fallback: no pulse
+    const anim = imgWrap.animate(
+      [
+        { transform: 'scale(1)',      offset: 0.00 },
+        { transform: 'scale(1.022)',  offset: 0.15 },
+        { transform: 'scale(1)',      offset: 0.30 },
+        { transform: 'scale(1.011)',  offset: 0.45 },
+        { transform: 'scale(1)',      offset: 0.60 },
+        { transform: 'scale(1)',      offset: 1.00 },
+      ],
+      { duration: 1600, iterations: Infinity, easing: 'ease-in-out' }
+    );
+    // Keep the animation running if the tab is backgrounded and later
+    // resumed — some browsers pause compositor animations on hidden.
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && anim.playState !== 'running') {
+        try { anim.play(); } catch(_) {}
+      }
+    });
+  })();
+
   // Dots + arrows
   const dotRow = $('#dotRow');
   IMAGES.forEach((_, i) => {
@@ -2358,16 +2386,11 @@
       state.activeMeter === 'focus' ? '%' :
       state.activeMeter === 'expose' ? 'ev' : '';
     hmLabelText.textContent = capitalize(state.activeMeter);
-    for (const m of ['heat', 'focus', 'expose', 'contrast', 'shadows']) {
+    for (const m of ['heat', 'focus', 'expose', 'contrast']) {
       document.documentElement.style.setProperty('--' + m + '-v', state[m]);
     }
 
-    // Heat visual cues
-    if (state.activeMeter === 'heat') {
-      heatMeterEl.classList.toggle('overheating', state.heat >= 92);
-    } else {
-      heatMeterEl.classList.remove('overheating');
-    }
+    heatMeterEl.classList.remove('overheating');
   }
   applyMeter();
 
@@ -2414,7 +2437,6 @@
       { id: 'heat',     name: 'Heat'     },
       { id: 'focus',    name: 'Focus'    },
       { id: 'expose',   name: 'Expose'   },
-      { id: 'shadows',  name: 'Shadows'  },
     ];
     const pop = document.createElement('div');
     pop.className = 'hm-pop';
@@ -2589,6 +2611,17 @@
     switchTo(parseInt(t.dataset.idx, 10));
     syncGalleryActive();
     closeOverlay();
+  });
+  // Submit image: open a prefilled email so Jen can attach a photo.
+  $('#gaSubmit').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const subject = 'Lust Machine — add this photo to the gallery';
+    const body =
+      'Attach the photo(s) to this email and hit send.\n\n' +
+      'Notes (optional): ';
+    window.location.href =
+      'mailto:wgoley@gmail.com?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
   });
   // Shuffle: pick a random subject from the full set (including hidden/gif).
   $('#gaShuffle').addEventListener('click', () => {
