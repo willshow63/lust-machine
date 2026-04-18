@@ -2791,9 +2791,8 @@
     window.location.href = href;
   });
 
-  // Always open on "Baby One More Time" (don't autoplay until welcome dismissed).
-  const START_TRACK = 'Baby One More Time.mp3';
-  apIdx = Math.max(0, PLAYLIST.indexOf(START_TRACK));
+  // Open on a random track (don't autoplay until welcome dismissed).
+  apIdx = Math.floor(Math.random() * PLAYLIST.length);
   soundtrack.src = encodeURI(PLAYLIST[apIdx]);
   apNowPlaying.textContent = '♪  ' + trackTitle(PLAYLIST[apIdx]);
   $$('#apTracks .ap-track').forEach((el, idx) => el.classList.toggle('current', idx === apIdx));
