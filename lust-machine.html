@@ -2674,8 +2674,9 @@
     });
   });
 
-  // Pick a random starting track on first load (but don't autoplay until welcome dismissed)
-  apIdx = Math.floor(Math.random() * PLAYLIST.length);
+  // Always open on "Like A Prayer" (don't autoplay until welcome dismissed).
+  const START_TRACK = 'Madonna - Like A Prayer.mp3';
+  apIdx = Math.max(0, PLAYLIST.indexOf(START_TRACK));
   soundtrack.src = encodeURI(PLAYLIST[apIdx]);
   apNowPlaying.textContent = '♪  ' + trackTitle(PLAYLIST[apIdx]);
   $$('#apTracks .ap-track').forEach((el, idx) => el.classList.toggle('current', idx === apIdx));
