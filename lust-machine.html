@@ -270,13 +270,17 @@
 
   /* =====================================================
      PULSE HEARTBEAT — image throb + red vignette
-     Pulse describes how HARD the heart beats, not how fast.
-     Pulse 0   : calm ~55 BPM, no visible beat
-     Pulse 100 : elevated ~80 BPM, strong ~6% image throb + red vignette
-     Speed stays moderate so the beat reads as powerful, not frantic.
+     Anchored speed:
+       pulse=0   -> 2.00s  (~30 BPM, almost silent)
+       pulse=50  -> 0.83s  (~72 BPM, normal resting)
+       pulse=100 -> 0.65s  (~92 BPM, elevated)
+     Implemented as the max of two linear segments:
+       steep slope 0→50 (drops quickly out of low range)
+       gentle slope 50→100 (small elevation at the top)
+     Amplitude scales with pulse-v so pulse=0 is still, pulse=100 pounds.
   ===================================================== */
   #stage .img-wrap {
-    animation: pulseBeat calc(max(0.75s, 1.1s - var(--pulse-v, 0) * 0.0035s)) ease-in-out infinite;
+    animation: pulseBeat max(0.65s, 2.0s - var(--pulse-v, 0) * 0.0234s, 1.01s - var(--pulse-v, 0) * 0.0036s) ease-in-out infinite;
     transform-origin: 50% 50%;
     will-change: transform;
   }
@@ -293,7 +297,7 @@
     z-index: 12;
     background: radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(215, 59, 42, calc(var(--pulse-v, 0) * 0.0018)) 100%);
     mix-blend-mode: multiply;
-    animation: pulseVignBeat calc(max(0.75s, 1.1s - var(--pulse-v, 0) * 0.0035s)) ease-in-out infinite;
+    animation: pulseVignBeat max(0.65s, 2.0s - var(--pulse-v, 0) * 0.0234s, 1.01s - var(--pulse-v, 0) * 0.0036s) ease-in-out infinite;
     opacity: 0.75;
     will-change: opacity, transform;
   }
@@ -1417,6 +1421,8 @@
     top: 0; left: 0; right: 0;
     display: flex;
     flex-direction: column;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
   }
   .sl-reel .cell {
     width: 100%;
@@ -2879,7 +2885,6 @@
 
   function spinReel(reelEl, targetIdx, duration) {
     return new Promise(resolve => {
-      // target cell position: need to know which cell index corresponds to targetIdx
       const cells = reelEl.children;
       // Find a late cell with this idx (ensures spin past)
       let targetCellIdx = cells.length - 3;
@@ -2889,17 +2894,27 @@
           break;
         }
       }
-      // ensure some cell is target; else replace one
       if (parseInt(cells[targetCellIdx].dataset.idx) !== targetIdx) {
         cells[targetCellIdx].querySelector('img').src = imgSrc(IMAGES[targetIdx]);
         cells[targetCellIdx].dataset.idx = targetIdx;
       }
       const cellHeight = 120;
       const finalY = -targetCellIdx * cellHeight;
-      reelEl.style.transition = `transform ${duration}ms cubic-bezier(.25,.1,.25,1)`;
-      // Start from way above
-      reelEl.style.transform = `translateY(${finalY}px)`;
-      setTimeout(resolve, duration + 50);
+
+      // Reset to top without transition. Every spin must start from 0,
+      // otherwise subsequent spins move very little and the animation
+      // looks like a jump-cut (seen on mobile especially).
+      reelEl.style.transition = 'none';
+      reelEl.style.transform = 'translate3d(0, 0, 0)';
+      // Force a reflow so the 'none' + 0 pair is committed before we
+      // set the transition + final transform.
+      void reelEl.offsetHeight;
+      // Next frame: enable transition and animate to the target row.
+      requestAnimationFrame(() => {
+        reelEl.style.transition = `transform ${duration}ms cubic-bezier(.25,.1,.25,1)`;
+        reelEl.style.transform = `translate3d(0, ${finalY}px, 0)`;
+      });
+      setTimeout(resolve, duration + 80);
     });
   }
 
