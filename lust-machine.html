@@ -269,44 +269,21 @@
   }
 
   /* =====================================================
-     PULSE HEARTBEAT — image throb + red vignette
-     Anchored speed:
-       pulse=0   -> 2.00s  (~30 BPM, almost silent)
-       pulse=50  -> 0.83s  (~72 BPM, normal resting)
-       pulse=100 -> 0.65s  (~92 BPM, elevated)
-     Implemented as the max of two linear segments:
-       steep slope 0→50 (drops quickly out of low range)
-       gentle slope 50→100 (small elevation at the top)
-     Amplitude scales with pulse-v so pulse=0 is still, pulse=100 pounds.
+     AMBIENT HEARTBEAT — subtle, fixed, always on
+     Decoupled from the pulse meter. A quiet lub-dub at ~72 BPM.
   ===================================================== */
   #stage .img-wrap {
-    animation: pulseBeat max(0.65s, 2.0s - var(--pulse-v, 0) * 0.0234s, 1.01s - var(--pulse-v, 0) * 0.0036s) ease-in-out infinite;
+    animation: pulseBeat 0.83s ease-in-out infinite;
     transform-origin: 50% 50%;
     will-change: transform;
   }
   @keyframes pulseBeat {
     0%, 60%, 100% { transform: scale(1); }
-    15%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.0006)); }
+    15%           { transform: scale(1.014); }
     30%           { transform: scale(1); }
-    45%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.0003)); }
+    45%           { transform: scale(1.007); }
   }
-  #pulseVignette {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 12;
-    background: radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(215, 59, 42, calc(var(--pulse-v, 0) * 0.0018)) 100%);
-    mix-blend-mode: multiply;
-    animation: pulseVignBeat max(0.65s, 2.0s - var(--pulse-v, 0) * 0.0234s, 1.01s - var(--pulse-v, 0) * 0.0036s) ease-in-out infinite;
-    opacity: 0.75;
-    will-change: opacity, transform;
-  }
-  @keyframes pulseVignBeat {
-    0%, 60%, 100% { opacity: 0.4;  transform: scale(1); }
-    15%           { opacity: 1;    transform: scale(1.01); }
-    30%           { opacity: 0.3;  transform: scale(1); }
-    45%           { opacity: 0.85; transform: scale(1.005); }
-  }
+  #pulseVignette { display: none; }
 
   /* =====================================================
      TOP BAR (floating, minimal)
@@ -456,11 +433,41 @@
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    cursor: grab;
     user-select: none;
     -webkit-user-select: none;
+    touch-action: none;
   }
-  .heat-meter:active { cursor: grabbing; }
+  .heat-meter.dragging {
+    transition: none !important;
+    cursor: grabbing !important;
+    box-shadow:
+      0 22px 48px rgba(30, 24, 21, 0.4),
+      0 3px 10px rgba(30, 24, 21, 0.2),
+      0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  }
+  .hm-grip {
+    margin-top: 0.1rem;
+    padding: 0.3rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    cursor: grab;
+    border-radius: 8px;
+    align-self: stretch;
+    align-items: center;
+    justify-content: center;
+    background: rgba(30, 24, 21, 0.05);
+    transition: background 0.15s;
+  }
+  .hm-grip:hover { background: rgba(30, 24, 21, 0.1); }
+  .hm-grip:active { cursor: grabbing; background: rgba(30, 24, 21, 0.14); }
+  .hm-grip span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: rgba(30, 24, 21, 0.4);
+    border-radius: 2px;
+  }
 
   .hm-label {
     display: flex;
@@ -555,7 +562,7 @@
   .fab-radial {
     --l: 56px;
     position: absolute;
-    bottom: calc(var(--safe-b) + 7rem);
+    bottom: calc(var(--safe-b) + 4.5rem);
     right: calc(var(--safe-r) + 1rem);
     z-index: 20;
     width: var(--l);
@@ -987,7 +994,7 @@
   .caption {
     position: absolute;
     left: calc(var(--safe-l) + 1rem);
-    bottom: calc(var(--safe-b) + 1.4rem);
+    bottom: calc(var(--safe-b) + 4.8rem);
     z-index: 10;
     max-width: 60%;
     color: var(--ink);
@@ -1074,7 +1081,7 @@
     box-shadow: 0 0 8px var(--heat-glow);
   }
   @media (max-width: 400px) {
-    .caption { max-width: 50%; bottom: calc(var(--safe-b) + 3.6rem); }
+    .caption { max-width: 50%; bottom: calc(var(--safe-b) + 7rem); }
   }
 
   /* =====================================================
@@ -1751,6 +1758,9 @@
       <div class="hm-fill" id="hmFill"></div>
     </div>
     <div class="hm-value"><span id="hmValue">24</span><span class="unit">°</span></div>
+    <div class="hm-grip" id="hmGrip" aria-label="Drag to move" title="Hold &amp; drag to move">
+      <span></span><span></span><span></span>
+    </div>
   </div>
 
   <!-- =========================================================
@@ -2137,6 +2147,13 @@
   // ============================================================
   // BUILD STAGE (subject imagery)
   // ============================================================
+  // Drop any subjects the user has asked us to hide from rotation.
+  {
+    const REMOVE = new Set(['normal_CSF002.jpg']);
+    for (let i = IMAGES.length - 1; i >= 0; i--) {
+      if (REMOVE.has(IMAGES[i].name)) IMAGES.splice(i, 1);
+    }
+  }
   // Splice in the Chris Farley gif as the 3rd subject (hidden from gallery,
   // still eligible for shuffle).
   IMAGES.splice(2, 0, { name: 'chris-farley.gif', src: 'chris-farley.gif', hidden: true });
@@ -2177,7 +2194,7 @@
   $('#dotNext').addEventListener('click', () => switchTo(state.index + 1));
 
   // Auto-advance every 15s; any user interaction defers the next tick by 15s.
-  const AUTO_ADVANCE_MS = 15000;
+  const AUTO_ADVANCE_MS = 20000;
   let autoAdvanceT = null;
   function scheduleAutoAdvance() {
     if (autoAdvanceT) clearTimeout(autoAdvanceT);
@@ -2214,10 +2231,9 @@
     const parent = hmValue.parentElement;
     parent.querySelector('.unit').textContent =
       state.activeMeter === 'heat' ? '°' :
-      state.activeMeter === 'pulse' ? '' :
       state.activeMeter === 'focus' ? '%' : 'ev';
     hmLabelText.textContent = capitalize(state.activeMeter);
-    for (const m of ['heat', 'pulse', 'focus', 'expose']) {
+    for (const m of ['heat', 'focus', 'expose']) {
       document.documentElement.style.setProperty('--' + m + '-v', state[m]);
     }
 
@@ -2258,13 +2274,57 @@
   // Swap button cycles meters
   $('#hmSwap').addEventListener('click', (e) => {
     e.stopPropagation();
-    const order = ['heat', 'pulse', 'focus', 'expose'];
+    const order = ['heat', 'focus', 'expose'];
     const next = order[(order.indexOf(state.activeMeter) + 1) % order.length];
     state.activeMeter = next;
     applyMeter();
   });
 
   function capitalize(s) { return s[0].toUpperCase() + s.slice(1); }
+
+  // Drag the whole meter widget around the viewport via the grip handle.
+  (function wireMeterDrag() {
+    const grip = $('#hmGrip');
+    if (!grip) return;
+    let dragging = false;
+    let startPX = 0, startPY = 0;
+    let startLeft = 0, startTop = 0;
+    grip.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      const rect = heatMeterEl.getBoundingClientRect();
+      // Switch to left/top positioning the first time we drag
+      heatMeterEl.style.left = rect.left + 'px';
+      heatMeterEl.style.top = rect.top + 'px';
+      heatMeterEl.style.right = 'auto';
+      heatMeterEl.style.bottom = 'auto';
+      startPX = e.clientX; startPY = e.clientY;
+      startLeft = rect.left; startTop = rect.top;
+      heatMeterEl.classList.add('dragging');
+      grip.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    grip.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const r = heatMeterEl.getBoundingClientRect();
+      const w = r.width, h = r.height;
+      let nx = startLeft + (e.clientX - startPX);
+      let ny = startTop  + (e.clientY - startPY);
+      // Clamp inside viewport with a small margin
+      const m = 6;
+      nx = Math.max(m, Math.min(window.innerWidth  - w - m, nx));
+      ny = Math.max(m, Math.min(window.innerHeight - h - m, ny));
+      heatMeterEl.style.left = nx + 'px';
+      heatMeterEl.style.top  = ny + 'px';
+    });
+    function stop(e) {
+      if (!dragging) return;
+      dragging = false;
+      heatMeterEl.classList.remove('dragging');
+      try { grip.releasePointerCapture(e.pointerId); } catch(_) {}
+    }
+    grip.addEventListener('pointerup', stop);
+    grip.addEventListener('pointercancel', stop);
+  })();
 
 
   // ============================================================
