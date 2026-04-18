@@ -2730,10 +2730,20 @@
       soundtrack.pause();
     }
   });
-  // Prev / Next always step linearly through the playlist, regardless
-  // of shuffle/loop mode.
-  $('#apPrev').addEventListener('click', () => loadTrack(apIdx - 1));
-  $('#apNext').addEventListener('click', () => loadTrack(apIdx + 1));
+  function randomOtherIdx() {
+    if (PLAYLIST.length <= 1) return 0;
+    let n;
+    do { n = Math.floor(Math.random() * PLAYLIST.length); } while (n === apIdx);
+    return n;
+  }
+  // Prev/Next step linearly unless shuffle is on, in which case they
+  // jump to a random track.
+  $('#apPrev').addEventListener('click', () =>
+    loadTrack(apMode === 'shuffle' ? randomOtherIdx() : apIdx - 1)
+  );
+  $('#apNext').addEventListener('click', () =>
+    loadTrack(apMode === 'shuffle' ? randomOtherIdx() : apIdx + 1)
+  );
   apTracks.addEventListener('click', (e) => {
     const t = e.target.closest('.ap-track');
     if (!t) return;
