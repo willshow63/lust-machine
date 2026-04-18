@@ -156,16 +156,17 @@
   }
   #welcome .w-sound {
     position: absolute;
-    left: 50%;
-    bottom: calc(var(--safe-b) + 2.5rem);
-    transform: translateX(-50%);
-    display: inline-flex;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--safe-b) + 5rem);
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.55rem;
     font-family: var(--sans);
-    font-weight: 600;
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
+    font-weight: 700;
+    font-size: 0.88rem;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--heat);
     opacity: 0;
@@ -173,8 +174,8 @@
     white-space: nowrap;
   }
   #welcome .w-sound svg {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
   }
   @keyframes wkIn {
     from { opacity: 0; transform: translateY(14px); }
@@ -278,26 +279,26 @@
   }
   @keyframes pulseBeat {
     0%, 60%, 100% { transform: scale(1); }
-    15%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.00024)); }
+    15%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.00012)); }
     30%           { transform: scale(1); }
-    45%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.000135)); }
+    45%           { transform: scale(calc(1 + var(--pulse-v, 0) * 0.00007)); }
   }
   #pulseVignette {
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 12;
-    background: radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(215, 59, 42, calc(var(--pulse-v, 0) * 0.0018)) 100%);
+    background: radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(215, 59, 42, calc(var(--pulse-v, 0) * 0.0009)) 100%);
     mix-blend-mode: multiply;
     animation: pulseVignBeat calc(max(0.45s, 1.05s - var(--pulse-v, 0) * 0.006s)) ease-in-out infinite;
-    opacity: 0.6;
+    opacity: 0.5;
     will-change: opacity, transform;
   }
   @keyframes pulseVignBeat {
     0%, 60%, 100% { opacity: 0.45; transform: scale(1); }
-    15%           { opacity: 1;    transform: scale(1.0045); }
+    15%           { opacity: 1;    transform: scale(1.0022); }
     30%           { opacity: 0.35; transform: scale(1); }
-    45%           { opacity: 0.8;  transform: scale(1.0024); }
+    45%           { opacity: 0.8;  transform: scale(1.0012); }
   }
 
   /* =====================================================
@@ -547,7 +548,7 @@
   .fab-radial {
     --l: 56px;
     position: absolute;
-    bottom: calc(var(--safe-b) + 3rem);
+    bottom: calc(var(--safe-b) + 7rem);
     right: calc(var(--safe-r) + 1rem);
     z-index: 20;
     width: var(--l);
@@ -640,17 +641,17 @@
   }
   .fab-radial .fab-toggle:checked ~ .fab-petal:hover .label { opacity: 1; }
   .fab-radial .fab-toggle:checked ~ .fab-games {
-    background: #c88a3d; /* burnished amber — warm & cream-friendly */
+    background: var(--heat-2);
     transform: translateY(calc(var(--l) * -1.55));
     transition-delay: 0s;
   }
   .fab-radial .fab-toggle:checked ~ .fab-audio {
-    background: var(--heat-deep); /* deep oxblood red */
+    background: var(--heat-deep);
     transform: translate(calc(var(--l) * -1.1), calc(var(--l) * -1.1));
     transition-delay: 0.06s;
   }
   .fab-radial .fab-toggle:checked ~ .fab-gallery {
-    background: #3a2820; /* espresso — warm brown rather than cold black */
+    background: var(--ink);
     transform: translateX(calc(var(--l) * -1.55));
     transition-delay: 0.12s;
   }
@@ -1019,15 +1020,36 @@
     transform: translateX(-50%);
     z-index: 10;
     display: flex;
-    gap: 6px;
+    align-items: center;
+    gap: 4px;
     background: rgba(253, 246, 234, 0.75);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 7px 10px;
+    padding: 6px 8px;
     border-radius: 99px;
     border: 1px solid var(--line);
     box-shadow: 0 4px 16px rgba(30, 24, 21, 0.12);
   }
+  .dots .dot-row {
+    display: flex;
+    gap: 6px;
+    padding: 0 4px;
+  }
+  .dots .dot-arrow {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .dots .dot-arrow:hover { background: rgba(30, 24, 21, 0.08); }
+  .dots .dot-arrow:active { transform: scale(0.92); }
+  .dots .dot-arrow svg { width: 14px; height: 14px; }
   .dots .dot {
     width: 8px; height: 8px;
     border-radius: 50%;
@@ -1691,7 +1713,15 @@
   <!-- =========================================================
        NAV DOTS
   ========================================================= -->
-  <div class="dots" id="dots"></div>
+  <div class="dots" id="dots">
+    <button class="dot-arrow" id="dotPrev" aria-label="Previous subject">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="dot-row" id="dotRow"></div>
+    <button class="dot-arrow" id="dotNext" aria-label="Next subject">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
 
   <!-- =========================================================
        FLOATING HEAT METER
@@ -2119,30 +2149,44 @@
     imgWrap.appendChild(el);
   });
 
-  // Dots
-  const dotsEl = $('#dots');
+  // Dots + arrows
+  const dotRow = $('#dotRow');
   IMAGES.forEach((_, i) => {
     const d = document.createElement('button');
     d.className = 'dot' + (i === 0 ? ' active' : '');
     d.dataset.idx = i;
     d.setAttribute('aria-label', 'Subject ' + (i + 1));
-    dotsEl.appendChild(d);
+    dotRow.appendChild(d);
   });
-  dotsEl.addEventListener('click', (e) => {
+  dotRow.addEventListener('click', (e) => {
     const d = e.target.closest('.dot');
     if (!d) return;
     switchTo(parseInt(d.dataset.idx, 10));
   });
+  $('#dotPrev').addEventListener('click', () => switchTo(state.index - 1));
+  $('#dotNext').addEventListener('click', () => switchTo(state.index + 1));
+
+  // Auto-advance every 15s; any user interaction defers the next tick by 15s.
+  const AUTO_ADVANCE_MS = 15000;
+  let autoAdvanceT = null;
+  function scheduleAutoAdvance() {
+    if (autoAdvanceT) clearTimeout(autoAdvanceT);
+    autoAdvanceT = setTimeout(() => {
+      switchTo(state.index + 1);
+    }, AUTO_ADVANCE_MS);
+  }
 
   function switchTo(i) {
     i = ((i % IMAGES.length) + IMAGES.length) % IMAGES.length;
-    if (i === state.index) return;
+    if (i === state.index) { scheduleAutoAdvance(); return; }
     state.index = i;
     $$('#imgWrap img').forEach((im, idx) => im.classList.toggle('active', idx === i));
-    $$('#dots .dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
+    $$('#dotRow .dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
     $('#captionIdx').textContent = `Subject ${String(i + 1).padStart(2, '0')} / ${String(IMAGES.length).padStart(2, "0")}`;
     $('#captionLine').textContent = CAPTIONS[i] || `Subject ${String(i + 1).padStart(2, '0')}`;
+    scheduleAutoAdvance();
   }
+  scheduleAutoAdvance();
 
   // ============================================================
   // HEAT METER — vertical drag
